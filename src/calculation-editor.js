@@ -48,7 +48,7 @@ export function applyCalculationDraft(project,draft){
     if(Math.abs(deduction-deductionArea(r))>1e-8)r.manualDeduction=deduction;
     if(entry.zones){
       if(entry.zones.enabled){r.heightZones=Object.fromEntries(heightZoneKeys.map(key=>[key,decimal(entry.zones[key])]));r.factor=1;}
-      else delete r.heightZones;
+      else{delete r.heightZones;if(r.id==='dg1')r.livingEligible=false;}
     }
   }
   for(const [field,max] of [['applicant',200],['propertyAddress',300],['caseNumber',100],['dwelling',200],['place',100],['reportDate',30]]){
@@ -90,7 +90,7 @@ export function calculationEditor(project){
     ${project.floors.map(f=>f.rooms.map(r=>{const d=entries.get(r.id);return `<tr data-edit-room="${esc(r.id)}"><td><small class="editor-floor">${esc(f.short||f.name)}</small><input data-field="name" aria-label="${esc(f.short)} ${esc(r.name)} Bezeichnung" value="${esc(r.name)}" maxlength="100"><select class="calculation-basis" data-field="basis" aria-label="${esc(f.short)} ${esc(r.name)} Berechnung"><option value="dimensions" ${d.basis==='dimensions'?'selected':''}>Nach Längen &amp; Breiten</option><option value="area" ${d.basis==='area'?'selected':''}>Fläche direkt eingeben</option></select>${!r.verified?'<small class="contour-note">Maße aus ergänzter Kontur</small>':''}${r.method==='dimensions'&&Math.abs(grossArea(r)-r.reference)>.005?`<small class="contour-note">Vorlage: ${num(r.reference)} m²</small>`:''}</td>
     <td>${dimensionInputs(r,d,f.short||f.name)}</td>
     ${[['deduction','Abzug',d.deduction],['factor','Ansatz',d.factor]].map(([name,label,value])=>`<td><input data-field="${name}" aria-label="${esc(f.short)} ${esc(r.name)} ${label}" inputmode="decimal" value="${esc(value)}" autocomplete="off" ${name==='factor'&&r.heightZones?'disabled':''}>${name==='factor'?`<small data-zone-factor-note ${r.heightZones?'':'hidden'}>Höhenzonen</small>`:''}</td>`).join('')}
-    <td class="editor-checks"><label><input type="checkbox" data-field="include" ${r.include?'checked':''}> Im Projekt</label><label><input type="checkbox" data-field="eligible" ${d.eligible?'checked':''}> Wohnfläche</label></td><td><output data-result>${num(formRoomArea(project,r))}</output></td></tr>`}).join('')).join('')}
+    <td class="editor-checks"><label><input type="checkbox" data-field="include" ${r.include?'checked':''}> Im Projekt</label><label><input type="checkbox" data-field="eligible" ${d.eligible?'checked':''} ${r.id==='dg1'&&!r.heightZones?'disabled':''}> Wohnfläche</label>${r.id==='dg1'?'<small>Über „Nach lichter Raumhöhe berechnen“ hinzufügen.</small>':''}</td><td><output data-result>${num(formRoomArea(project,r))}</output></td></tr>`}).join('')).join('')}
     </tbody></table></div>
     ${heightEditors(project,draft)}
     <div class="editor-help"><span><b>Länge × Breite ergibt die Grundfläche.</b> Verwinkelte Räume werden in Teilflächen zerlegt; bei Dreiecken gilt Grundseite × Höhe ÷ 2. Ergänzte Maße bitte prüfen. „Fläche direkt eingeben“ erhält einen manuellen Ansatz. Geänderte Berechnungsmaße verändern die gezeichnete Kontur nicht. Mit „Im Projekt“ und „Wohnfläche“ Räume den Summen zuordnen.</span><button id="applyCalculation" class="primary">Änderungen übernehmen</button></div>
@@ -124,11 +124,11 @@ function heightEditors(project,draft){
  const candidates=project.floors.flatMap(f=>f.rooms.filter(r=>f.id==='dg'||r.heightZones).map(r=>({f,r})));
  return candidates.map(({f,r})=>{const d=draft.rooms.find(x=>x.id===r.id);return `<details class="height-zone-editor" data-height-room="${esc(r.id)}" ${r.heightZones?'open':''}>
   <summary>${esc(f.short||f.name)} · ${esc(r.name)}: Höhenzonen bearbeiten</summary>
-  <p>Teilflächen in m² nach Abzügen gemäß § 3. Ihre Summe muss der Grundfläche minus §-3-Abzug entsprechen. Die Höhengewichtung ersetzt den pauschalen Prozentansatz. Anschließend wird der gewählte Abzug von der Grundfläche berücksichtigt.</p>
+  <p>Teilflächen in m² nach Abzügen gemäß § 3. Ihre Summe muss der Grundfläche minus §-3-Abzug entsprechen. Die Höhengewichtung ersetzt den pauschalen Prozentansatz. Anschließend wird der gewählte Abzug von der Grundfläche berücksichtigt.${r.id==='dg1'?' Der Haken fügt das DG zur WFB hinzu; ohne Haken erscheint es nicht auf dem Wohnflächenblatt.':''}</p>
   ${r.roofProfile?`<p class="height-source">Maßgrundlage: ${num(r.roofProfile.pitchDegrees).replace(',00','')}° Dachneigung · ${num(r.roofProfile.edgeHeight)} m Randhöhe an beiden Enden des DG-Maßansatzes.</p>`:''}
   <label class="height-toggle"><input type="checkbox" data-use-zones ${d.zones.enabled?'checked':''}> Nach lichter Raumhöhe berechnen</label>
   <fieldset ${d.zones.enabled?'':'disabled'}><legend>Teilflächen nach Raumhöhe</legend>${[['under1','Unter 1 m · 0 %'],['between1and2','1 bis unter 2 m · 50 %'],['from2','Ab 2 m · 100 %']].map(([key,label])=>`<label>${label}<input data-zone="${key}" aria-label="${esc(f.short||f.name)} ${esc(r.name)} ${label}" inputmode="decimal" value="${esc(d.zones[key])}" placeholder="m²"></label>`).join('')}</fieldset>
   ${r.roofProfile?'<button type="button" class="text-action" data-recalculate-height>Aus DG-Maßen neu berechnen ↗</button>':''}
-  <p class="height-status" data-height-status role="status" aria-live="polite">${r.heightZones?'Gespeicherte Höhenzonen geladen.':r.roofProfile?'Beim Aktivieren werden die Höhenzonen automatisch eingefügt. Vorhandene Eingaben bleiben erhalten.':'Höhenzonen bitte direkt eingeben.'}</p>
+  <p class="height-status" data-height-status role="status" aria-live="polite">${r.heightZones?'Gespeicherte Höhenzonen geladen.':r.id==='dg1'?'DG nicht in der WFB. Zum Hinzufügen die Berechnung nach lichter Raumhöhe aktivieren.':r.roofProfile?'Beim Aktivieren werden die Höhenzonen automatisch eingefügt. Vorhandene Eingaben bleiben erhalten.':'Höhenzonen bitte direkt eingeben.'}</p>
  </details>`}).join('');
 }

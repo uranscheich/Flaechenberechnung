@@ -33,6 +33,15 @@ test('Automatische Höhenzonen folgen geänderten DG-Berechnungsmaßen',()=>{
  const result=activateHeightDraft(entry,{pitchDegrees:45,edgeHeight:0});
  assert.deepEqual(result.entry.zones,{enabled:true,under1:'8',between1and2:'8',from2:'8'});
 });
+test('DG lässt sich nach Speichern und Laden nur mit aktiver Höhenberechnung zur WFB hinzufügen',()=>{
+ const p=initialProject(),draft=calculationDraft(p),index=draft.rooms.findIndex(r=>r.id==='dg1');
+ draft.rooms[index]=activateHeightDraft(draft.rooms[index],p.floors[2].rooms[0].roofProfile).entry;
+ const active=applyCalculationDraft(p,draft).project,off=calculationDraft(active);off.rooms[index].zones.enabled=false;
+ const removed=applyCalculationDraft(active,off);assert.deepEqual(removed.errors,[]);near(formTotal(removed.project),formTotal(p));assert.ok(!ingForm(removed.project).includes('Dachboden'));
+ const loaded=validateProject(JSON.parse(JSON.stringify(removed.project))),on=calculationDraft(loaded);
+ on.rooms[index]=activateHeightDraft(on.rooms[index],loaded.floors[2].rooms[0].roofProfile).entry;
+ const restored=applyCalculationDraft(loaded,on);assert.deepEqual(restored.errors,[]);near(formTotal(restored.project),formTotal(active));assert.ok(ingForm(restored.project).includes('data-form-room="dg1"'));
+});
 test('Eigene und unvollständige Höheneingaben werden bei erneutem Aktivieren nicht überschrieben',()=>{
  const entry=calculationDraft(initialProject()).rooms.find(r=>r.id==='dg1');
  entry.zones={enabled:false,under1:'0',between1and2:'10',from2:'23,002'};const before=structuredClone(entry);

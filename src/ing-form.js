@@ -23,7 +23,7 @@ function roomRows(project,{floor,room:r}){
  return `<tbody class="ing-room" data-form-room="${esc(r.id)}">${(parts||[null]).map((p,i)=>`<tr>${i===0?`<td${span}>${esc(r.name)}${count>1?`<small>${count} Teilflächen · Σ ${num(grossArea(r))} m²</small>`:''}</td><td${span}>${esc(floor)}</td>`:''}<td class="ing-number">${p?measure(p.length):'—'}</td><td class="ing-number">${p?measure(p.width):'—'}</td><td class="ing-number"><strong>${num(p?partArea(p):grossArea(r))}</strong>${p?.shape==='triangle'?'<small>Dreieck · ÷ 2</small>':!p?'<small>Manueller Ansatz</small>':''}</td>${i===0?`<td${span} class="ing-number">${approach(r)}${r.heightZones?'<small>Höhenzonen</small>':''}</td><td${span} class="ing-number"><strong>${num(formRoomArea(project,r))}</strong>${deductionArea(r)?`<small>§ 3: −${num(deductionArea(r))} m²</small>`:''}</td>`:''}</tr>`).join('')}${heightDetail(r)}</tbody>`;
 }
 export function ingForm(project){
- const all=project.floors.flatMap(f=>f.rooms.map(room=>({floor:f.short||f.name,room})));
+ const all=project.floors.flatMap(f=>f.rooms.filter(r=>r.id!=='dg1'||r.heightZones).map(room=>({floor:f.short||f.name,room})));
  const rows=all.filter(x=>x.room.include&&livingEligible(x.room)),excluded=all.filter(x=>!x.room.include||!livingEligible(x.room));
  const rate=formDeduction(project)*100;
  const meta=(label,value)=>`<div><span>${label}</span><strong>${esc(value||'')}</strong></div>`;
@@ -36,10 +36,10 @@ export function ingForm(project){
   ${Array.from({length:Math.max(0,14-rows.reduce((sum,{room})=>sum+(formParts(room)?.length||1),0))},()=>'<tr class="blank-row"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>').join('')}
   <tr class="blank-row"><td>Terrasse / Balkon</td><td></td><td></td><td></td><td></td><td>25 %</td><td></td></tr><tr class="blank-row"><td>Terrasse / Balkon</td><td></td><td></td><td></td><td></td><td>25 %</td><td></td></tr>
   <tr class="ing-excluded"><td>Keller</td><td colspan="6">keine Anrechnung auf die Wohnfläche</td></tr>
-  ${excluded.map(({floor,room:r})=>`<tr class="ing-excluded"><td>${esc(r.name)}</td><td colspan="6">${esc(floor)} · keine Anrechnung auf die Wohnfläche${r.id==='dg1'&&!livingEligible(r)?' · Zuordnung als Bodenraum':''}</td></tr>`).join('')}
+  ${excluded.map(({floor,room:r})=>`<tr class="ing-excluded"><td>${esc(r.name)}</td><td colspan="6">${esc(floor)} · keine Anrechnung auf die Wohnfläche</td></tr>`).join('')}
   </tbody><tfoot><tr><th colspan="6">Gesamtwohnfläche</th><td><strong>${num(formTotal(project))} m²</strong></td></tr></tfoot></table>
-  <p class="ing-calculation-note">${rate?`${num(rate).replace(',00','')} % Abzug von der Grundfläche. `:''}Teilflächen werden je Raum addiert; Dreiecke: Grundseite × Höhe ÷ 2. Abzüge nach § 3 und Anrechnung nach § 4 gelten einmal für die Raumsumme. Manuelle Flächenansätze haben keine abgeleiteten Maße. Ergänzte Konturmaße prüfen. Summe aus ungerundeten Einzelwerten.</p>
+  <div class="ing-page-footer"><p class="ing-calculation-note">${rate?`${num(rate).replace(',00','')} % Abzug von der Grundfläche. `:''}Teilflächen werden je Raum addiert; Dreiecke: Grundseite × Höhe ÷ 2. Abzüge nach § 3 und Anrechnung nach § 4 gelten einmal für die Raumsumme. Manuelle Flächenansätze haben keine abgeleiteten Maße. Ergänzte Konturmaße prüfen. Summe aus ungerundeten Einzelwerten.</p>
   <p class="ing-declaration">Ich versichere / Wir versichern, dass alle Angaben wahrheitsgemäß gemacht wurden.</p>
-  <div class="ing-signatures"><div><span>${esc([project.place,project.reportDate].filter(Boolean).join(', '))}</span><small>Ort, Datum</small></div><div><span></span><small>Unterschrift Darlehensnehmer</small></div><div><span></span><small>Bei Eigentumswohnungen / WEG-geteilten Objekten: Unterschrift eines Architekten oder Sachverständigen</small></div></div>
+  <div class="ing-signatures"><div><span>${esc([project.place,project.reportDate].filter(Boolean).join(', '))}</span><small>Ort, Datum</small></div><div><span></span><small>Unterschrift Darlehensnehmer</small></div><div><span></span><small>Bei Eigentumswohnungen / WEG-geteilten Objekten: Unterschrift eines Architekten oder Sachverständigen</small></div></div></div>
  </article>`;
 }

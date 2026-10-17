@@ -27,8 +27,16 @@ test('Fehlende oder nicht schließende Höhenzonen verhindern das Übernehmen',(
  r.zones={enabled:true,under1:'',between1and2:'10',from2:'20'};
  const result=applyCalculationDraft(p,draft);assert.ok(result.errors.length);assert.equal(result.project,undefined);assert.deepEqual(p,before);assert.equal(r.zones.under1,'');
 });
-test('Höhenzonen können deaktiviert werden; der gewählte pauschale Ansatz gilt wieder',()=>{
+test('Deaktivierte DG-Höhenberechnung entfernt den Raum und seinen Anteil aus der WFB',()=>{
  const p=initialProject(),r=p.floors[2].rooms[0];r.method='manual';r.manualArea=30;r.heightZones={under1:6,between1and2:10,from2:14};r.livingEligible=true;
  const draft=calculationDraft(p),entry=draft.rooms.find(r=>r.id==='dg1');entry.zones.enabled=false;entry.factor='50';
- const {project:next,errors}=applyCalculationDraft(p,draft);assert.deepEqual(errors,[]);assert.equal(next.floors[2].rooms[0].heightZones,undefined);assert.equal(livingArea(next.floors[2].rooms[0]),15);
+ const {project:next,errors}=applyCalculationDraft(p,draft);assert.deepEqual(errors,[]);assert.equal(next.floors[2].rooms[0].heightZones,undefined);assert.equal(next.floors[2].rooms[0].livingEligible,false);assert.equal(livingArea(next.floors[2].rooms[0]),0);
+ assert.ok(!livingForm(next).includes('Dachboden'));assert.equal(livingArea(r),19);
+ const restored=validateProject(JSON.parse(JSON.stringify(next)));assert.equal(livingArea(restored.floors[2].rooms[0]),0);assert.ok(!livingForm(restored).includes('Dachboden'));
+});
+
+test('Gespeicherte DG-Zuordnung ohne aktive Höhenberechnung wird nicht pauschal angerechnet',()=>{
+ const p=initialProject(),r=p.floors[2].rooms[0];r.livingEligible=true;r.factor=1;
+ assert.equal(livingArea(r),0);assert.ok(!livingForm(p).includes('Dachboden'));
+ const other=p.floors[0].rooms[1];other.factor=.5;assert.ok(livingArea(other)>0);
 });

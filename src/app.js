@@ -1,4 +1,5 @@
 import {activateHeightDraft} from './roof-zones.js';
+import {printCalculation} from './printing.js';
 import {syncDimensionInputs} from './dimension-editor.js';
 import {formTotal,formRoomArea} from './ing-form.js';
 import {reportPages} from './report.js';
@@ -26,7 +27,7 @@ $('#csvExport').onclick=()=>{const quote=v=>'"'+String(v).replace(/"/g,'""')+'"'
 $('#projectSettings').onclick=()=>{openModal(`<div class="settings"><div class="eyebrow">PROJEKTDATEN</div><h2>Dein Plan. Dein Projekt.</h2><label for="titleInput">Projektname</label><input id="titleInput" maxlength="200" value="${esc(project.title)}"><label for="subtitleInput">Beschreibung</label><input id="subtitleInput" maxlength="250" value="${esc(project.subtitle||'')}"><label for="authorInput">Bearbeitet von</label><input id="authorInput" maxlength="100" value="${esc(project.author||'')}"><label for="notesInput">Hinweise für den Flächenplan</label><textarea id="notesInput" maxlength="2000">${esc(project.notes||'')}</textarea><button class="primary" id="saveSettings">Projektdaten übernehmen</button></div>`);$('#saveSettings').onclick=()=>{project.title=$('#titleInput').value.trim()||'Unbenanntes Projekt';project.subtitle=$('#subtitleInput').value;project.author=$('#authorInput').value;project.notes=$('#notesInput').value;persist();render();$('#modal').close()}};
 
 function report(){
- openModal(`<div class="report"><div class="report-toolbar online-only"><div><span class="eyebrow">FLÄCHENPLAN / AUSGABE</span><p>Drei A3-Planblätter und das Wohnflächenblatt in A4. Beim Drucken 100 % und keine Browser-Kopfzeilen wählen.</p></div><div class="report-actions"><button id="toggleCalculation" aria-expanded="true" aria-controls="calculationEditor">Druckansicht</button><button class="primary" id="printReport">Flächenplan drucken / PDF</button></div></div>${calculationEditor(project)}<div id="reportPrintContent">${reportPages(project)}</div></div>`);
+ openModal(`<div class="report"><div class="report-toolbar online-only"><div><span class="eyebrow">FLÄCHENPLAN / AUSGABE</span><p>Gesamter Flächenplan mit A3-Plänen und A4-Wohnflächenblatt oder die WFB einzeln in A4. Beim Drucken 100 % und keine Browser-Kopfzeilen wählen.</p></div><div class="report-actions"><button id="toggleCalculation" aria-expanded="true" aria-controls="calculationEditor">Druckansicht</button><button id="printLiving">Nur WFB / PDF</button><button class="primary" id="printReport">Flächenplan drucken / PDF</button></div></div>${calculationEditor(project)}<div id="reportPrintContent">${reportPages(project)}</div></div>`);
  const editor=$('#calculationEditor'),status=$('#calculationStatus'),errors=$('#calculationErrors');
  const checkDraft=()=>applyCalculationDraft(project,readCalculationEditor(editor));
  const showErrors=messages=>{errors.hidden=!messages.length;errors.innerHTML=messages.map(m=>`<p>${esc(m)}</p>`).join('');};
@@ -42,6 +43,7 @@ function report(){
   const entry=readCalculationEditor(editor).rooms.find(r=>r.id===id),room=project.floors.flatMap(f=>f.rooms).find(r=>r.id===id);
   const result=activateHeightDraft(entry,room.roofProfile,{replace});
   for(const name of ['include','eligible'])row.querySelector(`[data-field="${name}"]`).checked=result.entry[name];
+  row.querySelector('[data-field="eligible"]').disabled=false;
   row.querySelector('[data-field="factor"]').value=result.entry.factor;
   for(const input of group.querySelectorAll('[data-zone]'))input.value=result.entry.zones[input.dataset.zone]??'';
   group.querySelector('[data-use-zones]').checked=true;group.querySelector('fieldset').disabled=false;
@@ -68,7 +70,10 @@ function report(){
    else{
     const row=[...editor.querySelectorAll('[data-edit-room]')].find(r=>r.dataset.editRoom===group.dataset.heightRoom);
     group.querySelector('fieldset').disabled=true;row.querySelector('[data-field="factor"]').disabled=false;row.querySelector('[data-zone-factor-note]').hidden=true;
-    group.querySelector('[data-height-status]').textContent='Höhengewichtung ausgeschaltet. Prozentansatz und Zuordnung aus der Raumzeile gelten.';
+    if(group.dataset.heightRoom==='dg1'){
+     const eligible=row.querySelector('[data-field="eligible"]');eligible.checked=false;eligible.disabled=true;
+     group.querySelector('[data-height-status]').textContent='DG aus der WFB entfernt. Zum Hinzufügen die Berechnung nach lichter Raumhöhe aktivieren.';
+    }else group.querySelector('[data-height-status]').textContent='Höhengewichtung ausgeschaltet. Prozentansatz und Zuordnung aus der Raumzeile gelten.';
    }
   }
   refreshPreview();
@@ -78,7 +83,8 @@ function report(){
   syncDimensionInputs(editor);fillHeight(button.closest('[data-height-room]'),true);refreshPreview();
  });
  $('#applyCalculation').onclick=apply;
- $('#printReport').onclick=()=>{if(apply())window.print()};
+ $('#printReport').onclick=()=>{if(apply())printCalculation()};
+ $('#printLiving').onclick=()=>{if(apply())printCalculation({livingOnly:true})};
  $('#toggleCalculation').onclick=e=>{editor.hidden=!editor.hidden;e.currentTarget.setAttribute('aria-expanded',!editor.hidden);e.currentTarget.textContent=editor.hidden?'Flächen bearbeiten':'Druckansicht';};
 }
 

@@ -16,7 +16,8 @@ test('Formularabzug folgt §3-Abzug und Höhengewichtung genau einmal',()=>{
 });
 test('Oberer Formularabschnitt enthält Bankangaben, Tabelle, Ausschlüsse und Unterschriften',()=>{
  const p=initialProject();p.applicant='<Antragsteller>';p.propertyAddress='Musterstraße 1';p.caseNumber='123';
- const html=ingForm(p);for(const label of ['Antragsteller / Darlehensnehmer','Beleihungsobjekt (Anschrift)','Vorgangsnummer','Länge × Breite','Grundfläche abzügl. 3 %','Gesamtwohnfläche','Unterschrift Darlehensnehmer','Zuordnung als Bodenraum'])assert.ok(html.includes(label),label);
+ const html=ingForm(p);for(const label of ['Antragsteller / Darlehensnehmer','Beleihungsobjekt (Anschrift)','Vorgangsnummer','Länge × Breite','Grundfläche abzügl. 3 %','Gesamtwohnfläche','Unterschrift Darlehensnehmer'])assert.ok(html.includes(label),label);
+ assert.ok(!html.includes('Dachboden'));
  assert.ok(html.includes('&lt;Antragsteller&gt;'));assert.ok(!html.includes('Vorgaben zur Berechnung der Wohnfläche'));assert.ok(!html.includes('Von der Behörde auszufüllen'));
  assert.equal(formDimensions(p.floors[0].rooms[0]),null);const d=formDimensions(p.floors[0].rooms[1]);assert.ok(Math.abs(d.length-2.885)<1e-10&&Math.abs(d.width-2.885)<1e-10);
 });
