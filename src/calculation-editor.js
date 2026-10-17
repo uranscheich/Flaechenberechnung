@@ -3,6 +3,8 @@ import {grossArea,deductionArea,validateProject} from './model.js';
 import {livingEligible,livingArea,livingTotal} from './woflv.js';
 import {escape as esc,num} from './plan.js';
 import {heightZoneKeys} from './height-zones.js';
+import {dimensionDraft,dimensionInputs,parseDimensionParts,readDimensionInputs} from './dimension-editor.js';
+import {partsArea} from './area-parts.js';
 
 const decimal=value=>{
   const text=String(value).trim();
@@ -16,7 +18,7 @@ export function calculationDraft(project){
     dwellingCount:project.dwellingCount||'',closed:project.closed||'',
     garages:project.garages??'',stores:project.stores??'',
     place:project.place||'',reportDate:project.reportDate||'',
-    rooms:project.floors.flatMap(f=>f.rooms.map(r=>({id:r.id,name:r.name,
+    rooms:project.floors.flatMap(f=>f.rooms.map(r=>({id:r.id,name:r.name,...dimensionDraft(r),
       gross:String(inputValue(grossArea(r))),deduction:String(inputValue(deductionArea(r))),
       factor:String(inputValue(r.factor*100)),include:r.include,eligible:livingEligible(r),
       zones:{enabled:!!r.heightZones,...Object.fromEntries(heightZoneKeys.map(key=>[key,r.heightZones?String(inputValue(r.heightZones[key])):'']))}})))
@@ -30,14 +32,19 @@ export function applyCalculationDraft(project,draft){
   for(const r of rooms){
     const entry=entries.get(r.id);
     if(!entry){errors.push(`${r.name}: Raumdaten fehlen.`);continue;}
-    const name=String(entry.name).trim(),gross=decimal(entry.gross),deduction=decimal(entry.deduction),factor=decimal(entry.factor);
+    const name=String(entry.name).trim(),deduction=decimal(entry.deduction),factor=decimal(entry.factor);
+    let gross=decimal(entry.gross),parts;
+    if(entry.basis==='dimensions'){
+      try{parts=parseDimensionParts(entry,decimal);gross=partsArea(parts);}catch(error){errors.push(`${name||r.name}: ${error.message}`);}
+    }else if(entry.basis!==undefined&&entry.basis!=='area')errors.push(`${name||r.name}: Berechnungsbasis prüfen.`);
     if(!name||name.length>100)errors.push(`${r.name}: Bitte eine Bezeichnung mit höchstens 100 Zeichen eingeben.`);
     if(!Number.isFinite(gross)||gross<0||gross>1e6)errors.push(`${name||r.name}: Grundfläche muss eine Zahl zwischen 0 und 1.000.000 sein.`);
     if(!Number.isFinite(deduction)||deduction<0||deduction>gross)errors.push(`${name||r.name}: Der Abzug muss zwischen 0 und der Grundfläche liegen.`);
     if(!entry.zones?.enabled&&(!Number.isFinite(factor)||factor<0||factor>100))errors.push(`${name||r.name}: Ansatz muss zwischen 0 und 100 % liegen.`);
     if(typeof entry.include!=='boolean'||typeof entry.eligible!=='boolean')errors.push(`${r.name}: Zuordnung prüfen.`);
     r.name=name;r.factor=factor/100;r.include=entry.include;r.livingEligible=entry.eligible;
-    if(Math.abs(gross-grossArea(r))>1e-8){r.method='manual';r.manualArea=gross;}
+    if(entry.basis==='dimensions'&&parts){r.method='dimensions';r.dimensionParts=parts;}
+    else if(Math.abs(gross-grossArea(r))>1e-8||r.method==='dimensions'&&entry.basis==='area'){r.method='manual';r.manualArea=gross;}
     if(Math.abs(deduction-deductionArea(r))>1e-8)r.manualDeduction=deduction;
     if(entry.zones){
       if(entry.zones.enabled){r.heightZones=Object.fromEntries(heightZoneKeys.map(key=>[key,decimal(entry.zones[key])]));r.factor=1;}
@@ -79,13 +86,14 @@ export function calculationEditor(project){
       ${field('place','Ort',draft.place,100)}${field('reportDate','Datum für die Unterschrift',draft.reportDate,30)}
     </div>
     ${atticGuidance(project)}
-    <div class="editor-table-scroll"><table class="editor-table"><thead><tr><th>Geschoss / Raum</th><th>Grundfläche <small>m²</small></th><th>Abzug § 3 <small>m²</small></th><th>Ansatz § 4 <small>%</small></th><th>Zuordnung</th><th>Wohnfläche <small>m²</small></th></tr></thead><tbody>
-    ${project.floors.map(f=>f.rooms.map(r=>{const d=entries.get(r.id);return `<tr data-edit-room="${esc(r.id)}"><td><small class="editor-floor">${esc(f.short||f.name)}</small><input data-field="name" aria-label="${esc(f.short)} ${esc(r.name)} Bezeichnung" value="${esc(r.name)}" maxlength="100"></td>
-    ${[['gross','Grundfläche',d.gross],['deduction','Abzug',d.deduction],['factor','Ansatz',d.factor]].map(([name,label,value])=>`<td><input data-field="${name}" aria-label="${esc(f.short)} ${esc(r.name)} ${label}" inputmode="decimal" value="${esc(value)}" autocomplete="off" ${name==='factor'&&r.heightZones?'disabled':''}>${name==='factor'?`<small data-zone-factor-note ${r.heightZones?'':'hidden'}>Höhenzonen</small>`:''}</td>`).join('')}
+    <div class="editor-table-scroll"><table class="editor-table"><thead><tr><th>Geschoss / Raum</th><th>Maßansatz / Grundfläche</th><th>Abzug § 3 <small>m²</small></th><th>Ansatz § 4 <small>%</small></th><th>Zuordnung</th><th>Wohnfläche <small>m²</small></th></tr></thead><tbody>
+    ${project.floors.map(f=>f.rooms.map(r=>{const d=entries.get(r.id);return `<tr data-edit-room="${esc(r.id)}"><td><small class="editor-floor">${esc(f.short||f.name)}</small><input data-field="name" aria-label="${esc(f.short)} ${esc(r.name)} Bezeichnung" value="${esc(r.name)}" maxlength="100"><select class="calculation-basis" data-field="basis" aria-label="${esc(f.short)} ${esc(r.name)} Berechnung"><option value="dimensions" ${d.basis==='dimensions'?'selected':''}>Nach Längen &amp; Breiten</option><option value="area" ${d.basis==='area'?'selected':''}>Fläche direkt eingeben</option></select>${!r.verified?'<small class="contour-note">Maße aus ergänzter Kontur</small>':''}${r.method==='dimensions'&&Math.abs(grossArea(r)-r.reference)>.005?`<small class="contour-note">Vorlage: ${num(r.reference)} m²</small>`:''}</td>
+    <td>${dimensionInputs(r,d,f.short||f.name)}</td>
+    ${[['deduction','Abzug',d.deduction],['factor','Ansatz',d.factor]].map(([name,label,value])=>`<td><input data-field="${name}" aria-label="${esc(f.short)} ${esc(r.name)} ${label}" inputmode="decimal" value="${esc(value)}" autocomplete="off" ${name==='factor'&&r.heightZones?'disabled':''}>${name==='factor'?`<small data-zone-factor-note ${r.heightZones?'':'hidden'}>Höhenzonen</small>`:''}</td>`).join('')}
     <td class="editor-checks"><label><input type="checkbox" data-field="include" ${r.include?'checked':''}> Im Projekt</label><label><input type="checkbox" data-field="eligible" ${d.eligible?'checked':''}> Wohnfläche</label></td><td><output data-result>${num(formRoomArea(project,r))}</output></td></tr>`}).join('')).join('')}
     </tbody></table></div>
     ${heightEditors(project,draft)}
-    <div class="editor-help"><span>Ein geänderter Grundflächenwert wird als <b>manueller Ansatz</b> gekennzeichnet. Die Raumkontur bleibt erhalten. Mit „Im Projekt“ und „Wohnfläche“ lassen sich Räume aus den jeweiligen Summen nehmen.</span><button id="applyCalculation" class="primary">Änderungen übernehmen</button></div>
+    <div class="editor-help"><span><b>Länge × Breite ergibt die Grundfläche.</b> Verwinkelte Räume werden in Teilflächen zerlegt; bei Dreiecken gilt Grundseite × Höhe ÷ 2. Ergänzte Maße bitte prüfen. „Fläche direkt eingeben“ erhält einen manuellen Ansatz. Geänderte Berechnungsmaße verändern die gezeichnete Kontur nicht. Mit „Im Projekt“ und „Wohnfläche“ Räume den Summen zuordnen.</span><button id="applyCalculation" class="primary">Änderungen übernehmen</button></div>
     <p id="calculationStatus" class="editor-status" role="status" aria-live="polite">Gespeicherter Projektstand geladen.</p><div id="calculationErrors" class="editor-errors" role="alert" hidden></div>
   </section>`;
 }
@@ -94,6 +102,7 @@ export function readCalculationEditor(root){
   const draft={rooms:[...root.querySelectorAll('[data-edit-room]')].map(row=>{
     const entry={id:row.dataset.editRoom};
     for(const input of row.querySelectorAll('[data-field]'))entry[input.dataset.field]=input.type==='checkbox'?input.checked:input.value;
+    entry.parts=readDimensionInputs(row);
     return entry;
   })};
   for(const input of root.querySelectorAll('[data-meta]'))draft[input.dataset.meta]=input.value;

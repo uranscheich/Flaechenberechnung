@@ -14,7 +14,7 @@ test('Dachschrägen werden mit 0/50/100 % gewichtet, ohne zweite Halbierung',()=
 });
 test('Die Höhenzonen schließen nach §3-Abzug; Abzug wird nicht ein zweites Mal abgezogen',()=>{
  const p=initialProject(),draft=calculationDraft(p),r=draft.rooms.find(r=>r.id==='dg1');
- r.gross='33';r.deduction='3';r.factor='50';r.eligible=true;
+ r.basis='area';r.gross='33';r.deduction='3';r.factor='50';r.eligible=true;
  r.zones={enabled:true,under1:'6',between1and2:'10',from2:'14'};
  const result=applyCalculationDraft(p,draft);assert.deepEqual(result.errors,[]);
  const next=result.project.floors[2].rooms[0];assert.equal(next.factor,1);assert.equal(livingArea(next),19);

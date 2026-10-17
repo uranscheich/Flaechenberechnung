@@ -9,7 +9,14 @@ export function structureSVG(id,{X,Y,s}){
  }
  const MX=x=>X(mirrorPoint([x,0])[0]);
  const p=layout.stairs.map(([x,y])=>`${X(x)},${Y(y)}`).join(' ');let stairs=p?`<polygon points="${p}" fill="#f4f5ed" stroke="#9aa58b" stroke-width=".6"/>`:'';
- if(id==='eg')for(let i=1;i<9;i++)stairs+=`<path d="M${MX(4.43)},${Y(5.015+i*.18)}H${MX(5.69)}" stroke="#9aa58b" stroke-width=".55"/>`;
+ if(id==='eg'){
+  const left=[...layout.stairs].reverse(),outline=left.map(([x,y])=>`${X(x)},${Y(y)}`).join(' ');
+  stairs=`<defs><clipPath id="stair-clip-eg"><polygon points="${outline}"/></clipPath></defs><g clip-path="url(#stair-clip-eg)"><polygon points="${outline}" fill="#f4f5ed"/>`;
+  const centre=[MX(4.74),Y(5.765)];
+  for(const [x,y] of [[5.69,4.95],[5.69,5.2],[5.69,5.5],[5.69,5.85],[5.69,6.2],[5.69,6.64],[5.32,6.64],[4.94,6.64],[4.55,6.64]])stairs+=`<path d="M${centre[0]},${centre[1]}L${MX(x)},${Y(y)}" fill="none" stroke="#9aa58b" stroke-width=".55"/>`;
+  stairs+='</g>';
+  stairs+=`<path data-stair-boundary="store" d="M${MX(5.69)},${Y(4.75)}L${MX(4.74)},${Y(5.35)}" fill="none" stroke="#6d7a61" stroke-width="1.4"/>`;
+ }
  if(id==='og'){for(let i=1;i<6;i++){const a=i/6;stairs+=`<path d="M${MX(4.2+(5.69-4.2)*a)},${Y(3.63)}L${MX(4.55)},${Y(4.65)} M${MX(4.55)},${Y(5.65)}L${MX(4.2+(5.69-4.2)*a)},${Y(6.64)}" stroke="#9aa58b" stroke-width=".55"/>`}for(let i=1;i<5;i++)stairs+=`<path d="M${MX(4.55)},${Y(4.65+i*.2)}H${MX(5.69)}" stroke="#9aa58b" stroke-width=".55"/>`}
  return {walls,doors,windows,stairs};
 }

@@ -32,7 +32,7 @@ test('Revision 2 wird einmalig gespiegelt; eigene Planwerte und übernommene Abz
  const p=JSON.parse(readFileSync(new URL('fixtures/revision-2-project.json',import.meta.url)));
  p.floors[0].rooms[0].reference=35;p.floors[0].rooms[0].name='Wohnen persönlich';
  const hall=p.floors[0].rooms[4];hall.deductions=[{name:'Eigener Abzug',width:1,depth:1.9}];
- const next=migrateProject(p);validateProject(next);assert.equal(next.geometryRevision,3);
+ const next=migrateProject(p);validateProject(next);assert.equal(next.geometryRevision,4);
  assert.equal(next.floors[0].rooms[0].reference,35);assert.equal(next.floors[0].rooms[0].name,'Wohnen persönlich');
  assert.equal(next.floors[0].rooms[4].reference,2);assert.equal(deductionArea(next.floors[0].rooms[4]),1.9);
  assert.deepEqual(next,migrateProject(next));

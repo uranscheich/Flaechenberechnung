@@ -12,7 +12,7 @@ test('Unveränderte Berechnungsentwürfe erhalten Geometrie und Berechnungsbasis
 });
 test('Manuelle Grundfläche, Abzug und Ansatz wirken in Vorschau, JSON und Wohnflächenblatt',()=>{
  const p=initialProject(),original=structuredClone(p),draft=calculationDraft(p),kitchen=draft.rooms.find(r=>r.id==='eg2');
- kitchen.name='Küche neu';kitchen.gross='9,5';kitchen.deduction='0,5';kitchen.factor='50';
+ kitchen.basis='area';kitchen.name='Küche neu';kitchen.gross='9,5';kitchen.deduction='0,5';kitchen.factor='50';
  draft.dwelling='Wohnung 1';draft.dwellingCount='1';draft.closed='yes';draft.garages='0';draft.stores='1';draft.place='Bremen';draft.reportDate='17.10.2026';
  const result=applyCalculationDraft(p,draft);assert.deepEqual(result.errors,[]);assert.deepEqual(p,original);
  const next=validateProject(JSON.parse(JSON.stringify(result.project))),r=next.floors[0].rooms[1];
@@ -24,7 +24,7 @@ test('Manuelle Grundfläche, Abzug und Ansatz wirken in Vorschau, JSON und Wohnf
 });
 test('Ungültige Entwürfe bleiben erhalten und verändern keine gespeicherten Raumdaten',()=>{
  for(const [field,value] of [['gross',''],['gross','-1'],['gross','abc'],['deduction','100'],['factor','101'],['factor','0x10'],['name','']]){
-  const p=initialProject(),before=structuredClone(p),draft=calculationDraft(p);draft.rooms[0][field]=value;
+  const p=initialProject(),before=structuredClone(p),draft=calculationDraft(p);draft.rooms[0].basis='area';draft.rooms[0][field]=value;
   const result=applyCalculationDraft(p,draft);assert.equal(result.project,undefined);assert.ok(result.errors.length);assert.deepEqual(p,before);assert.equal(draft.rooms[0][field],value);
  }
 });
