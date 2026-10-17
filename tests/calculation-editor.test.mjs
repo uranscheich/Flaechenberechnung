@@ -39,5 +39,5 @@ test('Zuordnungen und §3-Rechteckabzüge bleiben unabhängig von manuellen Abz�
 test('Formularfelder sind escaped; Editor und Gesetzesinfo sind nur online',()=>{
  const p=initialProject();p.title='<img src=x onerror=alert(1)>';p.floors[0].rooms[0].name='"<script>';
  const html=calculationEditor(p);assert.ok(!html.includes('<script>'));assert.ok(html.includes('&lt;script&gt;'));assert.ok(html.includes('online-only'));
- assert.ok(livingForm(p).includes('class="online-only law-info"'));
+ assert.ok(livingForm(p).includes('class="online-only">Grundfläche nach § 3 WoFlV'));
 });
