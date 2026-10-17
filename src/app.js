@@ -1,3 +1,4 @@
+import {activateHeightDraft} from './roof-zones.js';
 import {syncDimensionInputs} from './dimension-editor.js';
 import {formTotal,formRoomArea} from './ing-form.js';
 import {reportPages} from './report.js';
@@ -36,19 +37,45 @@ function report(){
   status.textContent=saved?'Änderungen übernommen und lokal gespeichert. Die Druckvorschau ist aktuell.':'Änderungen übernommen. Browserspeicher nicht verfügbar: Projekt bitte als JSON sichern.';
   return true;
  };
- editor.addEventListener('input',event=>{
-  if(event.target.matches('[data-use-zones]')){const group=event.target.closest('[data-height-room]'),enabled=event.target.checked,id=group.dataset.heightRoom,row=[...editor.querySelectorAll('[data-edit-room]')].find(r=>r.dataset.editRoom===id);group.querySelector('fieldset').disabled=!enabled;row.querySelector('[data-field="factor"]').disabled=enabled;if(enabled)row.querySelector('[data-field="factor"]').value='100';row.querySelector('[data-zone-factor-note]').hidden=!enabled;}
-
-  syncDimensionInputs(editor);
-  const result=checkDraft();status.textContent='Änderungen noch nicht übernommen.';
-  const candidate=result.project;
+ const fillHeight=(group,replace=false)=>{
+  const id=group.dataset.heightRoom,row=[...editor.querySelectorAll('[data-edit-room]')].find(r=>r.dataset.editRoom===id);
+  const entry=readCalculationEditor(editor).rooms.find(r=>r.id===id),room=project.floors.flatMap(f=>f.rooms).find(r=>r.id===id);
+  const result=activateHeightDraft(entry,room.roofProfile,{replace});
+  for(const name of ['include','eligible'])row.querySelector(`[data-field="${name}"]`).checked=result.entry[name];
+  row.querySelector('[data-field="factor"]').value=result.entry.factor;
+  for(const input of group.querySelectorAll('[data-zone]'))input.value=result.entry.zones[input.dataset.zone]??'';
+  group.querySelector('[data-use-zones]').checked=true;group.querySelector('fieldset').disabled=false;
+  row.querySelector('[data-field="factor"]').disabled=true;row.querySelector('[data-zone-factor-note]').hidden=false;
+  group.querySelector('[data-height-status]').textContent=result.message;
+ };
+ const refreshPreview=()=>{
+  const result=checkDraft(),candidate=result.project;
+  status.textContent=candidate?'Vorschau aktualisiert. Änderungen noch nicht gespeichert.':'Entwurf unvollständig. Die Vorschau zeigt den letzten gültigen Stand.';
   $('#draftLivingTotal').textContent=candidate?num(formTotal(candidate))+' m²':'—';
   $('#draftBaseTotal').textContent=candidate?'Vor Abzug: '+num(livingTotal(candidate))+' m²':'Vor Abzug: —';
   for(const row of editor.querySelectorAll('[data-edit-room]')){
    const r=candidate?.floors.flatMap(f=>f.rooms).find(r=>r.id===row.dataset.editRoom);
    row.querySelector('[data-result]').textContent=r?num(formRoomArea(candidate,r)):'—';
   }
+  if(candidate)$('#reportPrintContent').innerHTML=reportPages(candidate);
   if(!errors.hidden)showErrors(result.errors);
+ };
+ editor.addEventListener('input',event=>{
+  syncDimensionInputs(editor);
+  if(event.target.matches('[data-use-zones]')){
+   const group=event.target.closest('[data-height-room]');
+   if(event.target.checked)fillHeight(group);
+   else{
+    const row=[...editor.querySelectorAll('[data-edit-room]')].find(r=>r.dataset.editRoom===group.dataset.heightRoom);
+    group.querySelector('fieldset').disabled=true;row.querySelector('[data-field="factor"]').disabled=false;row.querySelector('[data-zone-factor-note]').hidden=true;
+    group.querySelector('[data-height-status]').textContent='Höhengewichtung ausgeschaltet. Prozentansatz und Zuordnung aus der Raumzeile gelten.';
+   }
+  }
+  refreshPreview();
+ });
+ editor.addEventListener('click',event=>{
+  const button=event.target.closest('[data-recalculate-height]');if(!button)return;
+  syncDimensionInputs(editor);fillHeight(button.closest('[data-height-room]'),true);refreshPreview();
  });
  $('#applyCalculation').onclick=apply;
  $('#printReport').onclick=()=>{if(apply())window.print()};

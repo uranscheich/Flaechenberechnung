@@ -76,7 +76,7 @@ export function calculationEditor(project){
   const field=(name,label,value,max)=>`<label>${label}<input data-meta="${name}" value="${esc(value)}" maxlength="${max}"></label>`;
   return `<section class="calculation-editor online-only" id="calculationEditor" aria-label="Flächenberechnung bearbeiten">
     <div class="editor-heading"><div><span class="eyebrow">VOR DEM EXPORT BEARBEITEN</span><h2>Die Flächen. Bis ins Detail.</h2>
-    <p>Werte und Wohnungsangaben hier anpassen und übernehmen. Die Vorschau darunter und das PDF verwenden denselben gespeicherten Stand.</p></div>
+    <p>Werte und Wohnungsangaben hier anpassen. Die Vorschau darunter folgt gültigen Eingaben. Mit „Änderungen übernehmen“ speichern; beim Drucken wird der gültige Entwurf übernommen.</p></div>
     <div class="editor-total"><small>WOHNFLÄCHENBERECHNUNG</small><strong id="draftLivingTotal">${num(formTotal(project))} <em>m²</em></strong><small id="draftBaseTotal">Vor Abzug: ${num(livingTotal(project))} m²</small></div></div>
     <div class="editor-meta">
       ${field('applicant','Antragsteller / Darlehensnehmer',draft.applicant,200)}
@@ -116,9 +116,19 @@ export function readCalculationEditor(root){
 
 function atticGuidance(project){
  if(!project.floors.some(f=>f.id==='dg'))return '';
- return `<aside class="attic-guidance"><strong>Dachboden &amp; Dachschrägen</strong><p>Ein Bodenraum zählt nach § 2 Abs. 3 Nr. 1 d WoFlV nicht zur Wohnfläche. Geschlossenheit allein begründet keinen 50-%-Ansatz. Bei zulässiger Wohnnutzung gelten je Teilfläche: unter 1 m Höhe 0 %, von 1 bis unter 2 m 50 %, ab 2 m 100 %. Eine weitere pauschale Kürzung auf 25 % folgt daraus nicht.</p><p>Die Vorlage zeigt 1,50-m-Linien. Für eine Berechnung nach Raumhöhe fehlen damit die Flächen der 1-m- und 2-m-Zonen. Diese können unten eingetragen werden. Die Zuordnung „Wohnfläche“ bleibt eine eigene Auswahl.</p><button class="text-action" data-law="woflv">Gesetzesgrundlage ansehen ↗</button></aside>`;
+ const hasRoofData=project.floors.some(f=>f.id==='dg'&&f.rooms.some(r=>r.roofProfile));
+ const sourceText=hasRoofData?'Für den vorhandenen DG-Ansatz sind Dachneigung und Randhöhe aus dem Gebäudeschnitt hinterlegt. Der Schalter übernimmt daraus die Höhenzonen und ordnet den Raum der Wohnfläche zu. Die zulässige Wohnnutzung bleibt dabei eure Zuordnung.':'Die Höhenzonen können unten direkt eingegeben werden. Beim Aktivieren wird der Raum der Wohnfläche zugeordnet.';
+ return `<aside class="attic-guidance"><strong>Dachboden &amp; Dachschrägen</strong><p>Ein Bodenraum zählt nach § 2 Abs. 3 Nr. 1 d WoFlV nicht zur Wohnfläche. Geschlossenheit allein begründet keinen 50-%-Ansatz. Bei zulässiger Wohnnutzung gelten je Teilfläche: unter 1 m Höhe 0 %, von 1 bis unter 2 m 50 %, ab 2 m 100 %. Eine weitere pauschale Kürzung auf 25 % folgt daraus nicht.</p><p>${sourceText}</p><button class="text-action" data-law="woflv">Gesetzesgrundlage ansehen ↗</button></aside>`;
 }
 function heightEditors(project,draft){
  const candidates=project.floors.flatMap(f=>f.rooms.filter(r=>f.id==='dg'||r.heightZones).map(r=>({f,r})));
- return candidates.map(({f,r})=>{const d=draft.rooms.find(x=>x.id===r.id);return `<details class="height-zone-editor" data-height-room="${esc(r.id)}" ${r.heightZones?'open':''}><summary>${esc(f.short||f.name)} · ${esc(r.name)}: Höhenzonen bearbeiten</summary><p>Teilflächen in m² nach Abzügen gemäß § 3 eingeben. Ihre Summe muss der Grundfläche minus §-3-Abzug entsprechen. Die Höhengewichtung ersetzt den pauschalen Prozentansatz. Anschließend wird der gewählte Abzug von der Grundfläche berücksichtigt.</p><label class="height-toggle"><input type="checkbox" data-use-zones ${d.zones.enabled?'checked':''}> Nach lichter Raumhöhe berechnen</label><fieldset ${d.zones.enabled?'':'disabled'}><legend>Teilflächen nach Raumhöhe</legend>${[['under1','Unter 1 m · 0 %'],['between1and2','1 bis unter 2 m · 50 %'],['from2','Ab 2 m · 100 %']].map(([key,label])=>`<label>${label}<input data-zone="${key}" aria-label="${esc(f.short||f.name)} ${esc(r.name)} ${label}" inputmode="decimal" value="${esc(d.zones[key])}" placeholder="m²"></label>`).join('')}</fieldset></details>`}).join('');
+ return candidates.map(({f,r})=>{const d=draft.rooms.find(x=>x.id===r.id);return `<details class="height-zone-editor" data-height-room="${esc(r.id)}" ${r.heightZones?'open':''}>
+  <summary>${esc(f.short||f.name)} · ${esc(r.name)}: Höhenzonen bearbeiten</summary>
+  <p>Teilflächen in m² nach Abzügen gemäß § 3. Ihre Summe muss der Grundfläche minus §-3-Abzug entsprechen. Die Höhengewichtung ersetzt den pauschalen Prozentansatz. Anschließend wird der gewählte Abzug von der Grundfläche berücksichtigt.</p>
+  ${r.roofProfile?`<p class="height-source">Maßgrundlage: ${num(r.roofProfile.pitchDegrees).replace(',00','')}° Dachneigung · ${num(r.roofProfile.edgeHeight)} m Randhöhe an beiden Enden des DG-Maßansatzes.</p>`:''}
+  <label class="height-toggle"><input type="checkbox" data-use-zones ${d.zones.enabled?'checked':''}> Nach lichter Raumhöhe berechnen</label>
+  <fieldset ${d.zones.enabled?'':'disabled'}><legend>Teilflächen nach Raumhöhe</legend>${[['under1','Unter 1 m · 0 %'],['between1and2','1 bis unter 2 m · 50 %'],['from2','Ab 2 m · 100 %']].map(([key,label])=>`<label>${label}<input data-zone="${key}" aria-label="${esc(f.short||f.name)} ${esc(r.name)} ${label}" inputmode="decimal" value="${esc(d.zones[key])}" placeholder="m²"></label>`).join('')}</fieldset>
+  ${r.roofProfile?'<button type="button" class="text-action" data-recalculate-height>Aus DG-Maßen neu berechnen ↗</button>':''}
+  <p class="height-status" data-height-status role="status" aria-live="polite">${r.heightZones?'Gespeicherte Höhenzonen geladen.':r.roofProfile?'Beim Aktivieren werden die Höhenzonen automatisch eingefügt. Vorhandene Eingaben bleiben erhalten.':'Höhenzonen bitte direkt eingeben.'}</p>
+ </details>`}).join('');
 }

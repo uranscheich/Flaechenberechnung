@@ -2,6 +2,7 @@ import {grossArea,deductionArea} from './model.js';
 import {livingArea,livingEligible} from './living-area.js';
 import {escape as esc,num,measure} from './plan.js';
 import {polygonParts,partArea} from './area-parts.js';
+import {heightZoneResult} from './height-zones.js';
 
 export const formDeduction=project=>project.formDeduction??.03;
 export const formRoomArea=(project,room)=>livingArea(room)*(1-formDeduction(project));
@@ -16,9 +17,10 @@ export function formParts(room){
  return polygonParts(room.points);
 }
 const approach=r=>r.heightZones?'0 / 50 / 100 %':`${num(r.factor*100).replace(',00','')} %`;
+const heightDetail=r=>r.heightZones?`<tr class="ing-height-detail"><td colspan="7">Höhenzonen: &lt; 1 m: ${num(r.heightZones.under1)} m² × 0 % + 1 bis unter 2 m: ${num(r.heightZones.between1and2)} m² × 50 % + ab 2 m: ${num(r.heightZones.from2)} m² × 100 % = ${num(heightZoneResult(r.heightZones))} m² vor Abzug von der Grundfläche.</td></tr>`:'';
 function roomRows(project,{floor,room:r}){
  const parts=formParts(r),count=parts?.length||1,span=count>1?` rowspan="${count}"`:'';
- return `<tbody class="ing-room" data-form-room="${esc(r.id)}">${(parts||[null]).map((p,i)=>`<tr>${i===0?`<td${span}>${esc(r.name)}${count>1?`<small>${count} Teilflächen · Σ ${num(grossArea(r))} m²</small>`:''}</td><td${span}>${esc(floor)}</td>`:''}<td class="ing-number">${p?measure(p.length):'—'}</td><td class="ing-number">${p?measure(p.width):'—'}</td><td class="ing-number"><strong>${num(p?partArea(p):grossArea(r))}</strong>${p?.shape==='triangle'?'<small>Dreieck · ÷ 2</small>':!p?'<small>Manueller Ansatz</small>':''}</td>${i===0?`<td${span} class="ing-number">${approach(r)}${r.heightZones?'<small>Höhenzonen</small>':''}</td><td${span} class="ing-number"><strong>${num(formRoomArea(project,r))}</strong>${deductionArea(r)?`<small>§ 3: −${num(deductionArea(r))} m²</small>`:''}</td>`:''}</tr>`).join('')}</tbody>`;
+ return `<tbody class="ing-room" data-form-room="${esc(r.id)}">${(parts||[null]).map((p,i)=>`<tr>${i===0?`<td${span}>${esc(r.name)}${count>1?`<small>${count} Teilflächen · Σ ${num(grossArea(r))} m²</small>`:''}</td><td${span}>${esc(floor)}</td>`:''}<td class="ing-number">${p?measure(p.length):'—'}</td><td class="ing-number">${p?measure(p.width):'—'}</td><td class="ing-number"><strong>${num(p?partArea(p):grossArea(r))}</strong>${p?.shape==='triangle'?'<small>Dreieck · ÷ 2</small>':!p?'<small>Manueller Ansatz</small>':''}</td>${i===0?`<td${span} class="ing-number">${approach(r)}${r.heightZones?'<small>Höhenzonen</small>':''}</td><td${span} class="ing-number"><strong>${num(formRoomArea(project,r))}</strong>${deductionArea(r)?`<small>§ 3: −${num(deductionArea(r))} m²</small>`:''}</td>`:''}</tr>`).join('')}${heightDetail(r)}</tbody>`;
 }
 export function ingForm(project){
  const all=project.floors.flatMap(f=>f.rooms.map(room=>({floor:f.short||f.name,room})));

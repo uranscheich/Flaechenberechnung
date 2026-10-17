@@ -29,5 +29,9 @@ export function migrateProject(input){
   }
   p.geometryRevision=4;
  }
+ for(const f of p.floors)for(const r of f.rooms){
+  const standard=defaults.get(r.id);
+  if(r.roofProfile===undefined&&standard?.roofProfile&&same(r.points,standard.points))r.roofProfile=structuredClone(standard.roofProfile);
+ }
  return migrateMeasureBasis(p);
 }
