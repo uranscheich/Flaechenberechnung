@@ -1,6 +1,6 @@
 # Flächenberechnung
 
-Ein lokales Architektur-Webtool für den Haustyp M (Mittelhaus). HTML, CSS und JavaScript mit SVG-Vektorplänen, ohne Buildschritt und ohne Anwendungsserver-Abhängigkeiten.
+Architektur-Webtool für Haustyp M (Mittelhaus), als HTML/CSS/JavaScript mit SVG-Vektorplänen. Persönlicher Untertitel: „Chrissis & Sassis + Wimmis & Almis neue Bude. live. love. laugh.“
 
 ## Starten
 
@@ -10,33 +10,46 @@ Node.js 22 oder neuer:
 npm start
 ```
 
-Anschließend http://127.0.0.1:4317 öffnen. Alternativ können `index.html`, `style.css` und `src/` auf einem statischen Webserver bereitgestellt werden. ES-Module benötigen einen HTTP-Server; direktes Öffnen als `file://` wird nicht unterstützt.
+http://127.0.0.1:4317 öffnen. Kein Buildschritt und keine npm-Abhängigkeiten. Die Anwendungsdateien lassen sich auch statisch hosten; ein HTTP-Server ist für die ES-Module nötig.
 
-## Enthalten
+## Funktionen
 
-- Erdgeschoss, Obergeschoss und Dachgeschoss aus dem bereitgestellten Bestandsplan.
-- Interaktive Raumwahl, Farbflächen, Beschriftungen und Referenzbemaßung.
-- Schematische Axonometrie als zusätzliche Raumansicht (kein volumetrisches 3D-Modell).
-- Geometrische Polygonberechnung, bearbeitbare Rechteckmaße und Eckpunkte.
-- Umschaltung zwischen berechneter Geometrie und beschriftetem Planwert pro Raum.
-- Flächenfaktoren und Ein-/Ausschluss einzelner Räume.
-- Browserlokales Speichern sowie JSON-Projekte zum Export und Import.
-- SVG- und CSV-Export, maßstäblicher A3-Bericht im Querformat mit einem Blatt pro Geschoss und PDF über den Browserdruck (für den Bestandsplan 1:100).
-- Lokale PDF-Vorschau. Die Originalvorlage wird nicht im öffentlichen Repository veröffentlicht.
+- EG, OG und DG mit Maßketten, farbigen Raumflächen, Wandkörpern und Türanschlägen.
+- Gemeinsames Geometriemodell für Raumkanten, Wandsegmente und darin verankerte Tür-/Fensteröffnungen. Geschlossene Küchen-Nordwand, Küchenzugang seitlich zum Windfang, vollständige WC-Nordwand; OG mit Flurversprung, Garderobenrücksprung und einer seitlichen Schlafzimmertür.
+- Schematische Axonometrie, Beschriftungen, Einrichtung und Bemaßung schaltbar.
+- Rechteckmaße und Polygonkonturen bearbeitbar; geometrische Berechnung oder Planwert als ausdrücklich gewählte Grundlage.
+- Abzugsflächen als benannte Rechtecke (Bezeichnung;Breite;Tiefe), Flächenfaktoren und getrennte Wohnflächenzuordnung.
+- Browserlokales Speichern, JSON-Import/-Export, SVG- und CSV-Export.
+- Maßstäbliche A3-Pläne im Querformat, für den Bestand 1:100 bei 100 % Druckskalierung. Größere Konturen erhalten automatisch einen passenden kleineren Standardmaßstab.
+- Als letzte Berichtsseite eine Wohnflächenberechnung in A4 hoch mit Grundflächen, Abzügen, Ergebnis, leerer Behördenspalte, Angaben zur Wohnung und Unterschriftszeilen.
+- Info-i unmittelbar hinter „Grundfläche nach § 3 WoFlV“ öffnet online die Gesetzeszusammenfassung. Das i und die Zusammenfassung werden nicht gedruckt.
 
-## Maßgrundlage und Grenzen
+## Maßgrundlage
 
-Die Maßketten der Vorlage werden als Meterwerte übernommen: Außenmaß 5,95 × 10,15 m, Innenbreite 5,69 m; Erdgeschoss-Küchenbreite 2,885 m; Obergeschoss 2,76 / 2,815 m auf der Gartenseite und 3,01 / 2,565 m auf der Eingangsseite. Die inneren Längsabschnitte 3,515 + 0,115 + 3,01 + 0,115 + 2,885 ergeben 9,640 m; das Außenmaß abzüglich 2 × 0,25 m ergibt 9,650 m. Die Kontur verwendet 9,650 m; diese Differenz von 1 cm ist nicht als präzises Aufmaß aufzulösen.
+Der Hauptbaukörper hat außen 5,95 × 10,15 m. Wandkerne gemäß Nutzerkorrektur: Ost/West 0,115 m, Nord/Süd 0,225 m. Die Zeichnung enthält darüber hinaus Randmaße, die nicht mit dem Wandkern gleichgesetzt werden:
 
-Vollständig bemaßte Rechtecke werden unmittelbar berechnet. Für unvollständig bemaßte verwinkelte Räume ist die Kontur ergänzt und als solche gekennzeichnet; als anfängliche Berechnungsbasis dient dort der beschriftete Planwert. Über den Inspector kann bewusst zur Konturberechnung gewechselt werden. Die aufgedruckten Planflächen bleiben als Vergleichswert erhalten. Geometrie und Referenzwerte werden nicht unbemerkt gleichgesetzt.
+- Ost/West: 0,115 + 0,015 = 0,130 m je Seite → 5,69 m innen.
+- Nord/Süd: das in der Vorlage hochgestellte Maß 25⁵ cm bedeutet 25,5 cm = 0,255 m je Seite → 9,64 m innen. Das verbleibende Restmaß zum Wandkern beträgt 0,030 m; ein bestimmter Materialaufbau wird nicht angenommen.
+- Die Längsteilmaßkette 3,515 + 0,115 + 3,01 + 0,115 + 2,885 schließt damit bei 9,640 m. Die zuvor beschriebene 1-cm-Differenz war ein Lesefehler und ist korrigiert.
+- Außenkontur Hauptbaukörper: 60,3925 m². Lichte Innenkontur einschließlich Treppenraum: 54,8516 m². Der 1,00-m-Außenversatz des H.A.R.-Anbaus wird separat gezeigt.
 
-Die beschrifteten Planwerte ergeben: EG 50,83 m², OG 48,12 m², Dachboden 32,67 m². Der bemaßte Dachbodenbereich 5,69 × 5,80 m ergibt geometrisch 33,002 m². Keine Putzabzüge oder anderen Korrekturen werden angenommen, um die Originalwerte zu erzwingen.
+Nicht vollständig bemaßte Innenlängen bleiben ergänzte Konturen. Türanschläge und die Wandanschlüsse folgen dem Grundriss; ihre nicht bemaßten Abstände sind aus der Zeichnung angenähert. Die Darstellung ist kein geprüftes Aufmaß. Rahmenmaßketten beschreiben den Bestand und werden durch freie Raumkonturbearbeitung nicht automatisch verändert.
 
-Die Bemaßung am Planrahmen beschreibt die feste Bestandsvorlage; sie ist kein dynamisches Aufmaß bearbeiteter Raumkonturen. Die schematische Darstellung ergänzt Mobiliar und Treppen. Flächen sind additiv, keine automatische Vereinigung überlappender Polygone. Neue Räume werden rechts neben dem Bestandsplan angelegt. Treppen und Außenbereiche sind keine erfassten Raumflächen. Kein CAD-Ersatz und keine automatische Wohnflächen-/DIN-Klassifizierung; Faktoren müssen fachlich gewählt werden. Insbesondere ist der Dachboden nicht automatisch Wohnfläche; 1,50-m-Linien ersetzen keine Höhenzonierung. Der Druckmaßstab wird je Blatt angegeben. Für den Bestandsplan ist er 1:100 auf A3 quer bei 100 % Druckskalierung; größere Konturen erhalten automatisch einen passenden kleineren Standardmaßstab. Der grafische Maßstab ist Bestandteil der SVG und skaliert mit ihr.
+Planwerte als Vergleich: EG 50,83 m², OG 48,12 m², Dachboden 32,67 m². Ein bemaßtes Rechteck kann davon abweichen, z.B. Küche 2,885 × 2,885 = 8,323225 m² oder Dachboden 5,69 × 5,80 = 33,002 m². Keine erfundenen Putzabzüge zum Erzwingen eines Referenzwerts.
 
-## Daten
+## Wohnflächenblatt
 
-Projektinhalte bleiben im Browser (`localStorage`) oder in ausdrücklich exportierten Dateien. Die PDF-Vorschau verwendet eine lokale Blob-URL. Für Typografie wird Google Fonts geladen; bei fehlender Verbindung greift die Systemschrift. Es gibt keinen Cloud-Upload für Projektdaten. Browserdaten sind kein Backup: JSON exportieren.
+Lichte Maße, Abzüge nach § 3 und Anrechnung nach § 4 werden getrennt verarbeitet. Bereits in der Geometrie ausgesparte Treppen, Wände oder Nischen werden nicht ein zweites Mal abgezogen. Zugehörigkeit nach § 2 ist eine eigene Auswahl. H.A.R. und Dachboden sind anfänglich nicht als Wohnfläche angesetzt; das ist keine automatische bauordnungsrechtliche Eignungsfeststellung. Unterschiedliche Höhenzonen brauchen getrennte Teilflächen. Ungeprüfte Referenzwerte sind auf dem Formular gekennzeichnet; die Gesamtaufstellung bleibt ein Arbeitsstand.
+
+Amtlicher Text, am 17.10.2026 geprüft: [§ 2 WoFlV](https://www.gesetze-im-internet.de/woflv/__2.html), [§ 3 WoFlV](https://www.gesetze-im-internet.de/woflv/__3.html), [§ 4 WoFlV](https://www.gesetze-im-internet.de/woflv/__4.html).
+
+## Daten und Privatsphäre
+
+Die Originalvorlage wird weder eingebettet noch online bereitgestellt und ist kein Bestandteil dieses Repositorys. Der lokale Server liefert ausschließlich `index.html`, `style.css` und die JavaScript-Module unter `src/`. PDFs, Arbeitsdateien, Exporte und Tests sind über HTTP nicht erreichbar. Referenzdateien liegen außerhalb des Webroots. Der Server bindet ausschließlich an 127.0.0.1.
+
+Projektinhalte bleiben im Browser oder in ausdrücklich exportierten Dateien. Google Fonts wird für die Typografie geladen; ohne Verbindung greift die Systemschrift. Es gibt keinen Upload von Projekt- oder Vorlagedaten. JSON-Dateien als Backup exportieren.
+
+Bereits gespeicherte Projekte erhalten die korrigierten Standardkonturen beim Laden. Eigene Raumkonturen, Namen, Faktoren und andere Änderungen werden erhalten. „Hausanschluss“ wird bei diesem ursprünglichen Namen zu „H.A.R.“ migriert.
 
 ## Prüfen
 
@@ -44,8 +57,4 @@ Projektinhalte bleiben im Browser (`localStorage`) oder in ausdrücklich exporti
 npm test
 ```
 
-Die Tests prüfen Flächenformeln, Faktoren, Originalwerte, JSON-Validierung und SVG-Escaping. Browserprüfung separat durchführen: Geschosse, Maßänderung, Faktoren, Ausschluss, JSON-Roundtrip, Exporte und Bericht. Die Druckausgabe hängt vom Browser ab; A3 quer und 100 % Skalierung verwenden und Browserkopf-/Fußzeilen abschalten.
-
-## Maßplan-Überarbeitung
-
-Die Außenwände sind als maßhaltiger Wandkörper mit Schraffur modelliert: seitlich 13 cm (1,5 + 11,5 cm), stirnseitig 25 cm. Außenkontur, lichte Innenkontur, Geschosssumme und Projektflächensumme werden getrennt gezeigt. Geschossbezogene Maßketten und der 1,00-m-Außenversatz des Anbaus sind separat dargestellt. Unter „Maßgrundlage“ werden die Herleitungen und die 1-cm-Maßkettendifferenz offen ausgewiesen. Tür-/Fensterlagen und Einrichtung sind schematisch; ergänzte Innenkonturen bleiben gekennzeichnet. Eine bereitgestellte PDF kann lokal unter `local/reference.pdf` liegen; dieser Ordner ist ausgeschlossen.
+Geprüft werden u.a. Flächenformeln, Maßabschluss, Türöffnungen und Schwenkrichtungen, Küchen-/WC-/OG-Anschlüsse, Datenmigration, Abzüge und Wohnflächenzuordnung, SVG-Escaping, Maßstab, letzte Formularseite und Schutz der Arbeitsdateien vor HTTP-Zugriff. Browserprüfung zusätzlich für Darstellung, Bericht, Infofeld und Exporte. Beim PDF-Druck 100 %, A3 quer für Planblätter und A4 hoch für das letzte Formularblatt sowie keine Browser-Kopf-/Fußzeilen verwenden.

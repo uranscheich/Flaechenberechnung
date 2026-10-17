@@ -1,0 +1,459 @@
+{
+  "version": 1,
+  "title": "Haustyp M",
+  "subtitle": "Mittelhaus · Bestandsaufnahme",
+  "author": "",
+  "notes": "Grundlage: bereitgestellter Bestandsplan. Maße in Metern. Ergänzte Konturen vor Ort prüfen.",
+  "floors": [
+    {
+      "id": "eg",
+      "name": "Erdgeschoss",
+      "short": "EG",
+      "rooms": [
+        {
+          "id": "eg1",
+          "name": "Wohnen / Essen",
+          "reference": 31.69,
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              5.69,
+              0
+            ],
+            [
+              5.69,
+              3.9
+            ],
+            [
+              4.25,
+              3.9
+            ],
+            [
+              4.25,
+              5
+            ],
+            [
+              3.01,
+              5
+            ],
+            [
+              3.01,
+              6.65
+            ],
+            [
+              0,
+              6.65
+            ]
+          ],
+          "color": "#b8c8b1",
+          "verified": false,
+          "method": "reference",
+          "factor": 1,
+          "include": true,
+          "category": "Innenfläche"
+        },
+        {
+          "id": "eg2",
+          "name": "Küche",
+          "reference": 8.24,
+          "points": [
+            [
+              0,
+              6.765
+            ],
+            [
+              2.885,
+              6.765
+            ],
+            [
+              2.885,
+              9.65
+            ],
+            [
+              0,
+              9.65
+            ]
+          ],
+          "color": "#d8c9ae",
+          "verified": true,
+          "method": "geometry",
+          "factor": 1,
+          "include": true,
+          "category": "Innenfläche"
+        },
+        {
+          "id": "eg3",
+          "name": "Windfang",
+          "reference": 4.48,
+          "points": [
+            [
+              3,
+              7.78
+            ],
+            [
+              4.315,
+              7.78
+            ],
+            [
+              4.315,
+              8.505
+            ],
+            [
+              5.69,
+              8.505
+            ],
+            [
+              5.69,
+              9.65
+            ],
+            [
+              3,
+              9.65
+            ]
+          ],
+          "color": "#a9c2c6",
+          "verified": false,
+          "method": "reference",
+          "factor": 1,
+          "include": true,
+          "category": "Innenfläche"
+        },
+        {
+          "id": "eg4",
+          "name": "WC",
+          "reference": 1.96,
+          "points": [
+            [
+              4.43,
+              6.95
+            ],
+            [
+              5.69,
+              6.95
+            ],
+            [
+              5.69,
+              8.39
+            ],
+            [
+              4.43,
+              8.39
+            ]
+          ],
+          "color": "#d3b5a5",
+          "verified": false,
+          "method": "reference",
+          "factor": 1,
+          "include": true,
+          "category": "Innenfläche"
+        },
+        {
+          "id": "eg5",
+          "name": "Flur",
+          "reference": 2,
+          "points": [
+            [
+              3.125,
+              5.115
+            ],
+            [
+              4.315,
+              5.115
+            ],
+            [
+              4.315,
+              7.665
+            ],
+            [
+              3.125,
+              7.665
+            ]
+          ],
+          "color": "#c1bbd4",
+          "verified": false,
+          "method": "reference",
+          "factor": 1,
+          "include": true,
+          "category": "Innenfläche"
+        },
+        {
+          "id": "eg6",
+          "name": "Abstellraum",
+          "reference": 1.35,
+          "points": [
+            [
+              4.365,
+              4.015
+            ],
+            [
+              5.69,
+              4.015
+            ],
+            [
+              5.69,
+              4.885
+            ],
+            [
+              4.365,
+              4.885
+            ]
+          ],
+          "color": "#cbd0c7",
+          "verified": false,
+          "method": "reference",
+          "factor": 1,
+          "include": true,
+          "category": "Innenfläche"
+        },
+        {
+          "id": "eg7",
+          "name": "Hausanschluss",
+          "reference": 1.11,
+          "points": [
+            [
+              4.43,
+              9.9
+            ],
+            [
+              5.69,
+              9.9
+            ],
+            [
+              5.69,
+              10.65
+            ],
+            [
+              4.43,
+              10.65
+            ]
+          ],
+          "color": "#e2d6bc",
+          "verified": false,
+          "method": "reference",
+          "factor": 1,
+          "include": true,
+          "category": "Innenfläche"
+        }
+      ]
+    },
+    {
+      "id": "og",
+      "name": "Obergeschoss",
+      "short": "OG",
+      "rooms": [
+        {
+          "id": "og1",
+          "name": "Kind 01",
+          "reference": 13.02,
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              2.76,
+              0
+            ],
+            [
+              2.76,
+              3.515
+            ],
+            [
+              2.56,
+              3.515
+            ],
+            [
+              2.56,
+              4.76
+            ],
+            [
+              0,
+              4.76
+            ]
+          ],
+          "color": "#b8c8b1",
+          "verified": false,
+          "method": "reference",
+          "factor": 1,
+          "include": true,
+          "category": "Innenfläche"
+        },
+        {
+          "id": "og2",
+          "name": "Kind 02",
+          "reference": 9.79,
+          "points": [
+            [
+              2.875,
+              0
+            ],
+            [
+              5.69,
+              0
+            ],
+            [
+              5.69,
+              3.515
+            ],
+            [
+              2.875,
+              3.515
+            ]
+          ],
+          "color": "#a9c2c6",
+          "verified": true,
+          "method": "geometry",
+          "factor": 1,
+          "include": true,
+          "category": "Innenfläche"
+        },
+        {
+          "id": "og3",
+          "name": "Schlafen",
+          "reference": 14.19,
+          "points": [
+            [
+              0,
+              4.875
+            ],
+            [
+              2.79,
+              4.875
+            ],
+            [
+              2.79,
+              6.765
+            ],
+            [
+              3.01,
+              6.765
+            ],
+            [
+              3.01,
+              9.65
+            ],
+            [
+              0,
+              9.65
+            ]
+          ],
+          "color": "#d8c9ae",
+          "verified": false,
+          "method": "reference",
+          "factor": 1,
+          "include": true,
+          "category": "Innenfläche"
+        },
+        {
+          "id": "og4",
+          "name": "Bad",
+          "reference": 7.16,
+          "points": [
+            [
+              3.125,
+              6.765
+            ],
+            [
+              5.69,
+              6.765
+            ],
+            [
+              5.69,
+              9.65
+            ],
+            [
+              3.125,
+              9.65
+            ]
+          ],
+          "color": "#d3b5a5",
+          "verified": true,
+          "method": "geometry",
+          "factor": 1,
+          "include": true,
+          "category": "Innenfläche"
+        },
+        {
+          "id": "og5",
+          "name": "Flur",
+          "reference": 3.96,
+          "points": [
+            [
+              2.875,
+              3.63
+            ],
+            [
+              4.15,
+              3.63
+            ],
+            [
+              4.15,
+              6.65
+            ],
+            [
+              2.905,
+              6.65
+            ],
+            [
+              2.905,
+              4.76
+            ],
+            [
+              2.675,
+              4.76
+            ],
+            [
+              2.675,
+              3.63
+            ]
+          ],
+          "color": "#c1bbd4",
+          "verified": false,
+          "method": "reference",
+          "factor": 1,
+          "include": true,
+          "category": "Innenfläche"
+        }
+      ]
+    },
+    {
+      "id": "dg",
+      "name": "Dachgeschoss",
+      "short": "DG",
+      "rooms": [
+        {
+          "id": "dg1",
+          "name": "Dachboden",
+          "reference": 32.67,
+          "points": [
+            [
+              0,
+              2.175
+            ],
+            [
+              5.69,
+              2.175
+            ],
+            [
+              5.69,
+              7.975
+            ],
+            [
+              0,
+              7.975
+            ]
+          ],
+          "color": "#d8c9ae",
+          "verified": true,
+          "method": "geometry",
+          "factor": 1,
+          "include": true,
+          "category": "Innenfläche"
+        }
+      ]
+    }
+  ]
+}
